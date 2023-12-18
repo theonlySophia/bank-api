@@ -1,11 +1,12 @@
 const postgres = require("postgres");
+const { dbPort, host, database, username, password } = require("./constants");
 
 const sql = postgres({
-  host: process.env.HOST, // Postgres ip address[s] or domain name[s]
-  port: process.env.DB_PORT, // Postgres server port[s]
-  database: process.env.DB_NAME, // Name of database to connect to
-  username: process.env.DB_USER, // Username of database user
-  password: process.env.DB_PASSWORD, // Password of database user
+  host, // Postgres ip address[s] or domain name[s]
+  port: dbPort, // Postgres server port[s]
+  database, // Name of database to connect to
+  username, // Username of database user
+  password, // Password of database user
 });
 
-module.exports = sql
+module.exports = sql;

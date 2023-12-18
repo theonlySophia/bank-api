@@ -1,5 +1,5 @@
 const AsyncHandler = require("express-async-handler");
-const jwt = require("jsonwebtoken")
+const jwt = require("jsonwebtoken");
 const sql = require("../config/db");
 const { hashPassword, comparePassword } = require("../utils/passwords");
 const { signToken, signRefreshToken, verifyToken } = require("../utils/token");
@@ -49,26 +49,23 @@ const login = AsyncHandler(async (req, res) => {
       });
     }
     // The above code checks if an email and password has been entered and the fields aren't empty
-    const fetchUser = await sql`SELECT * from user_table WHERE email = ${email}`;
-    const user = fetchUser[0]
+    const fetchUser =
+      await sql`SELECT * from user_table WHERE email = ${email}`;
+    const user = fetchUser[0];
     if (user) {
       const passCheck = await comparePassword(user.user_password, password);
       if (passCheck) {
-        // const accessToken = signToken(user.user_id);
-        const accessToken = jwt.sign({id:user.user_id}, "123456", {
-            expiresIn : "1d"
-        })
-        const refreshToken = await signRefreshToken(user.user_id);
-        console.log(accessToken, refreshToken)
-       const myUser = await sql`INSERT INTO user_table(refresh_token) VALUES (${refreshToken})`;
-        console.log(myUser)
+        const accessToken = signToken(user.user_id);
+        const refreshToken = signRefreshToken(user.user_id);
+
+        await sql`UPDATE user_table SET refresh_token = ${refreshToken} WHERE user_id = ${user.user_id}`;
         res.cookie("refreshToken", refreshToken, {
           httpOnly: true,
           secure: true,
           maxAge: 30 * 24 * 60 * 60 * 1000,
         });
         return res.status(200).json({
-          user,
+          user: { ...user, refresh_token: null },
           token: accessToken,
         });
       } else {
@@ -90,7 +87,35 @@ const login = AsyncHandler(async (req, res) => {
   }
 });
 
+const forgotPassword = AsyncHandler(async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({
+        status: 400,
+        message: "invalid input",
+      });
+    }
+    const fetchUser =
+      await sql`SELECT * from user_table WHERE email = ${email}`;
+    const user = fetchUser[0];
+    if (user) {
+      let subject = `Forgot Password`
+      let html = ``
+    } else {
+      return res.status(401).json({
+        status: 401,
+        message: "User doesn't exist",
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      error,
+    });
+  }
+});
+
 module.exports = {
   register,
-  login
+  login,
 };

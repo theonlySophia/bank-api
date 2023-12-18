@@ -1,10 +1,10 @@
 const express = require("express")
-require("dotenv").config()
 const {notFound} = require("./middleware/notFound")
 const authRouter = require("./routes/authRoutes")
 const morgan = require("morgan")
 const cors = require("cors")
 const cookieParser = require("cookie-parser")
+const { PORT } = require("./config/constants")
 
 const app = express()
 app.use(express.json())
@@ -24,7 +24,7 @@ app.use("/auth", authRouter)
 
 app.use(notFound)
 
-const PORT = process.env.PORT
+
 
 const startApp = ()=>{
     app.listen(PORT, ()=>{
