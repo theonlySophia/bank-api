@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const sql = require("../config/db");
 const { hashPassword, comparePassword } = require("../utils/passwords");
 const { signToken, signRefreshToken, verifyToken } = require("../utils/token");
+const sendMail = require("../utils/mailer");
 const createAdmin = (req, res) => {};
 
 const register = AsyncHandler(async (req, res) => {
@@ -100,8 +101,16 @@ const forgotPassword = AsyncHandler(async (req, res) => {
       await sql`SELECT * from user_table WHERE email = ${email}`;
     const user = fetchUser[0];
     if (user) {
-      let subject = `Forgot Password`
-      let html = ``
+      let subject = `Forgot Password`;
+      let html = `<p>Hello ${user.firstname}<p>
+      <p>Please click the <a href="http://localhost:3000/verify-user/our-token">link<a/> to reset your password<p/>`;
+
+      const response = await sendMail(email, subject, html);
+
+      return res.status(200).json({
+        message: "Email successfully sent",
+        response,
+      });
     } else {
       return res.status(401).json({
         status: 401,
