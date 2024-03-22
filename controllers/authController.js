@@ -127,4 +127,5 @@ const forgotPassword = AsyncHandler(async (req, res) => {
 module.exports = {
   register,
   login,
+  forgotPassword,
 };
