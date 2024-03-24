@@ -2,7 +2,12 @@ const AsyncHandler = require("express-async-handler");
 const jwt = require("jsonwebtoken");
 const sql = require("../config/db");
 const { hashPassword, comparePassword } = require("../utils/passwords");
-const { signToken, signRefreshToken, signForgotToken, verifyToken } = require("../utils/token");
+const {
+  signToken,
+  signRefreshToken,
+  signForgotToken,
+  verifyToken,
+} = require("../utils/token");
 const sendMail = require("../utils/mailer");
 const createAdmin = (req, res) => {};
 
@@ -102,7 +107,7 @@ const forgotPassword = AsyncHandler(async (req, res) => {
     const user = fetchUser[0];
     if (user) {
       let subject = `Forgot Password`;
-      let token = signForgotToken(email)
+      let token = signForgotToken(email);
       let html = `<p>Hello ${user.firstname}<p>
       <p>Please click the <a href="http://localhost:3000/auth/verify-user/${token}">link<a/> to reset your password<p/>`;
 
@@ -125,20 +130,41 @@ const forgotPassword = AsyncHandler(async (req, res) => {
   }
 });
 
-const verifyUser = AsyncHandler(async(req, res,next)=>{
-try {
-  const {token} = req.params
-  console.log(token)
-} catch (error) {
-  return res.status(500).json({
-    error,
-  });
-}
-})
+const verifyUser = AsyncHandler(async (req, res, next) => {
+  try {
+    const { token } = req.params;
+    // method to decode the signed jwt token and return the signed content(payload)
+    const payload = verifyToken(token);
+
+    // destructure the email from the payload
+    const { email } = payload;
+
+    if (email) {
+      const fetchUser =
+      await sql`SELECT * from user_table WHERE email = ${email}`;
+    const user = fetchUser[0];
+    if(user){
+      return res.status(200).json({
+        message: "User Verified",
+      });
+    }
+    return res.status(401).json({
+      message: "User not Found",
+    });
+    }
+    return res.status(401).json({
+      message: "Invalid token, please retry",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error,
+    });
+  }
+});
 
 module.exports = {
   register,
   login,
   forgotPassword,
-  verifyUser
+  verifyUser,
 };

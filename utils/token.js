@@ -11,9 +11,9 @@ const signToken = (id) => {
   return token;
 };
 
-const signForgotToken = (id) => {
+const signForgotToken = (email) => {
   let payload = {
-    id,
+    email,
   };
   let token = jwt.sign(payload, secret, {
     expiresIn: "10m",
