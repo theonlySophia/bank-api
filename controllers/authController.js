@@ -104,7 +104,7 @@ const forgotPassword = AsyncHandler(async (req, res) => {
       let subject = `Forgot Password`;
       let token = signForgotToken(email)
       let html = `<p>Hello ${user.firstname}<p>
-      <p>Please click the <a href="http://localhost:3000/verify-user/${token}">link<a/> to reset your password<p/>`;
+      <p>Please click the <a href="http://localhost:3000/auth/verify-user/${token}">link<a/> to reset your password<p/>`;
 
       const response = await sendMail(email, subject, html);
 
