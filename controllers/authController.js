@@ -146,6 +146,7 @@ const verifyUser = AsyncHandler(async (req, res, next) => {
     if(user){
       return res.status(200).json({
         message: "User Verified",
+        data: {email}
       });
     }
     return res.status(401).json({
@@ -162,9 +163,38 @@ const verifyUser = AsyncHandler(async (req, res, next) => {
   }
 });
 
+const resetPassword = AsyncHandler(async(req,res, next) => {
+  try {
+    const {email,password} = req.body;
+    if(!email || !password){
+      return res.status(400).json({
+        message: "incomplete input"
+      })
+    }
+    const fetchUser =
+    await sql`SELECT * from user_table WHERE email = ${email}`;
+    const user = fetchUser[0];
+    if(user){
+      const hashedPassword = await hashPassword(password);
+      await sql`UPDATE user_table SET user_password = ${hashedPassword} WHERE email = ${user.email}`;
+      return res.status(200).json({
+        message: "password reset successful"
+      })
+    }
+    return res.status(401).json({
+      message: "user not found"
+    })
+  } catch (error) {
+    return res.status(500).json({
+      error,
+    });
+  }
+} )
+
 module.exports = {
   register,
   login,
   forgotPassword,
   verifyUser,
+  resetPassword
 };
