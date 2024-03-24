@@ -1,5 +1,5 @@
 const express = require('express')
-const { register, login, forgotPassword } = require('../controllers/authController')
+const { register, login, forgotPassword, verifyUser } = require('../controllers/authController')
 
 const authRouter = express.Router()
 
@@ -7,5 +7,6 @@ const authRouter = express.Router()
 
 authRouter.route("/users").post(register)
 authRouter.route("/users/login").post(login)
+authRouter.route("/verify-user/:token").get(verifyUser)
 authRouter.route("/users/forgotpassword").post(forgotPassword)
 module.exports = authRouter

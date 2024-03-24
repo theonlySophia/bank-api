@@ -11,6 +11,16 @@ const signToken = (id) => {
   return token;
 };
 
+const signForgotToken = (id) => {
+  let payload = {
+    id,
+  };
+  let token = jwt.sign(payload, secret, {
+    expiresIn: "10m",
+  });
+  return token;
+};
+
 const signRefreshToken = (id) => {
   let payload = {
     id,
@@ -30,4 +40,5 @@ module.exports = {
   signToken,
   signRefreshToken,
   verifyToken,
+  signForgotToken
 };
