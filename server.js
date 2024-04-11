@@ -5,6 +5,7 @@ const morgan = require("morgan")
 const cors = require("cors")
 const cookieParser = require("cookie-parser")
 const { PORT } = require("./config/constants")
+const { errHandler } = require("./middleware/errHandler")
 
 const app = express()
 app.use(express.json())
@@ -23,8 +24,7 @@ app.get("/", (req, res)=>{
 app.use("/auth", authRouter)
 
 app.use(notFound)
-
-
+app.use(errHandler)
 
 const startApp = ()=>{
     app.listen(PORT, ()=>{

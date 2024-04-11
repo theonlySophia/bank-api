@@ -11,14 +11,17 @@ const {
 const sendMail = require("../utils/mailer");
 const createAdmin = (req, res) => {};
 
-const register = AsyncHandler(async (req, res) => {
+const register = AsyncHandler(async (req, res, next) => {
   try {
     const { email, firstName, lastName, password, dateOfBirth } = req.body;
     if (!email || !firstName || !lastName || !password || !dateOfBirth) {
-      return res.status(400).json({
-        status: 400,
-        message: "invalid input",
-      });
+      // return res.status(400).json({
+      //   status: 400,
+      //   message: "invalid input",
+      // });
+      // sets status code to 400 and passes control to the error handler
+      res.status(400);
+      throw new Error("invalid input");
     }
     const user = await sql`SELECT * from user_table WHERE email = ${email} `;
     if (user.length < 1) {
@@ -34,18 +37,21 @@ const register = AsyncHandler(async (req, res) => {
         user,
       });
     } else {
-      return res.status(401).json({
-        message: "User already exists",
-      });
+      // return res.status(401).json({
+      //   message: "User already exists",
+      // });
+      res.status(401)
+      throw new Error("User already exists");
     }
   } catch (error) {
-    return res.status(500).json({
-      error,
-    });
+    // return res.status(500).json({
+    //   error,
+    // });
+    next(error)
   }
 });
 
-const login = AsyncHandler(async (req, res) => {
+const login = AsyncHandler(async (req, res, next) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -87,9 +93,10 @@ const login = AsyncHandler(async (req, res) => {
       });
     }
   } catch (error) {
-    return res.status(500).json({
-      error,
-    });
+    // return res.status(500).json({
+    //   error,
+    // });
+    next(error)
   }
 });
 
@@ -141,17 +148,17 @@ const verifyUser = AsyncHandler(async (req, res, next) => {
 
     if (email) {
       const fetchUser =
-      await sql`SELECT * from user_table WHERE email = ${email}`;
-    const user = fetchUser[0];
-    if(user){
-      return res.status(200).json({
-        message: "User Verified",
-        data: {email}
+        await sql`SELECT * from user_table WHERE email = ${email}`;
+      const user = fetchUser[0];
+      if (user) {
+        return res.status(200).json({
+          message: "User Verified",
+          data: { email },
+        });
+      }
+      return res.status(401).json({
+        message: "User not Found",
       });
-    }
-    return res.status(401).json({
-      message: "User not Found",
-    });
     }
     return res.status(401).json({
       message: "Invalid token, please retry",
@@ -163,38 +170,38 @@ const verifyUser = AsyncHandler(async (req, res, next) => {
   }
 });
 
-const resetPassword = AsyncHandler(async(req,res, next) => {
+const resetPassword = AsyncHandler(async (req, res, next) => {
   try {
-    const {email,password} = req.body;
-    if(!email || !password){
+    const { email, password } = req.body;
+    if (!email || !password) {
       return res.status(400).json({
-        message: "incomplete input"
-      })
+        message: "incomplete input",
+      });
     }
     const fetchUser =
-    await sql`SELECT * from user_table WHERE email = ${email}`;
+      await sql`SELECT * from user_table WHERE email = ${email}`;
     const user = fetchUser[0];
-    if(user){
+    if (user) {
       const hashedPassword = await hashPassword(password);
       await sql`UPDATE user_table SET user_password = ${hashedPassword} WHERE email = ${user.email}`;
       return res.status(200).json({
-        message: "password reset successful"
-      })
+        message: "password reset successful",
+      });
     }
     return res.status(401).json({
-      message: "user not found"
-    })
+      message: "user not found",
+    });
   } catch (error) {
     return res.status(500).json({
       error,
     });
   }
-} )
+});
 
 module.exports = {
   register,
   login,
   forgotPassword,
   verifyUser,
-  resetPassword
+  resetPassword,
 };
