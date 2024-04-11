@@ -19,7 +19,7 @@ const register = AsyncHandler(async (req, res) => {
       //   status: 400,
       //   message: "invalid input",
       // });
-      res.status(400)
+      res.status(400);
       throw new Error("invalid input");
     }
     const user = await sql`SELECT * from user_table WHERE email = ${email} `;
@@ -39,14 +39,14 @@ const register = AsyncHandler(async (req, res) => {
       // return res.status(401).json({
       //   message: "User already exists",
       // });
-      res.status(401)
+      res.status(401);
       throw new Error("User already exists");
     }
   } catch (error) {
     // return res.status(500).json({
     //   error,
     // });
-    next(error)
+    next(error);
   }
 });
 
@@ -58,7 +58,7 @@ const login = AsyncHandler(async (req, res, next) => {
       //   status: 400,
       //   message: "invalid input",
       // });
-      res.status(400)
+      res.status(400);
       throw new Error("invalid input");
     }
     // The above code checks if an email and password has been entered and the fields aren't empty
@@ -83,10 +83,10 @@ const login = AsyncHandler(async (req, res, next) => {
         });
       } else {
         //return res.status(401).json({
-          //status: 401,
-          //message: "Password incorrect",
+        //status: 401,
+        //message: "Password incorrect",
         //});
-        res.status(401)
+        res.status(401);
         throw new Error("Password Incorrect");
       }
     } else {
@@ -94,14 +94,14 @@ const login = AsyncHandler(async (req, res, next) => {
       //   status: 401,
       //   message: "User doesn't exist",
       // });
-      res.status(401)
+      res.status(401);
       throw new Error("User doesn't exist");
     }
   } catch (error) {
     // return res.status(500).json({
     //   error,
     // });
-    next(error)
+    next(error);
   }
 });
 
@@ -113,7 +113,7 @@ const forgotPassword = AsyncHandler(async (req, res, next) => {
       //   status: 400,
       //   message: "invalid input",
       // });
-      res.status(400)
+      res.status(400);
       throw new Error("invalid input");
     }
     const fetchUser =
@@ -136,14 +136,14 @@ const forgotPassword = AsyncHandler(async (req, res, next) => {
       //   status: 401,
       //   message: "User doesn't exist",
       // });
-      res.status(401)
+      res.status(401);
       throw new Error("User doesn't exist");
     }
   } catch (error) {
     // return res.status(500).json({
     //   error,
     //});
-    next(error)
+    next(error);
   }
 });
 
@@ -158,70 +158,74 @@ const verifyUser = AsyncHandler(async (req, res, next) => {
 
     if (email) {
       const fetchUser =
-      await sql`SELECT * from user_table WHERE email = ${email}`;
-    const user = fetchUser[0];
-    if(user){
-      return res.status(200).json({
-        message: "User Verified",
-        data: {email}
-      });
-    }
-    // return res.status(401).json({
-    //   message: "User not Found",
-    // });
-    res.status(401)
-    throw new Error("User not found")
+        await sql`SELECT * from user_table WHERE email = ${email}`;
+      const user = fetchUser[0];
+      if (user) {
+        const accessToken = signToken(user.user_id);
+
+        return res.status(200).json({
+          message: "User Verified",
+          accessToken,
+        });
+      }
+      // return res.status(401).json({
+      //   message: "User not Found",
+      // });
+      res.status(401);
+      throw new Error("User not found");
     }
     // return res.status(401).json({
     //   message: "Invalid token, please retry",
     // });
-    res.status(401)
+    res.status(401);
     throw new Error("Invalid token, please retry");
   } catch (error) {
     // return res.status(500).json({
     //   error,
     // });
-    next(error)
+    next(error);
   }
 });
 
-const resetPassword = AsyncHandler(async(req,res, next) => {
+const resetPassword = AsyncHandler(async (req, res, next) => {
   try {
-    const {email,password} = req.body;
-    if(!email || !password){
+    const { password } = req.body;
+    // the userid passed from authMiddleware
+    const { userId } = req;
+    if (!password) {
       // return res.status(400).json({
       //   message: "incomplete input"
       // })
-      res.status(400)
+      res.status(400);
       throw new Error("Incomplete input");
     }
     const fetchUser =
-    await sql`SELECT * from user_table WHERE email = ${email}`;
+      await sql`SELECT * from user_table WHERE user_id = ${userId}`;
     const user = fetchUser[0];
-    if(user){
+    if (user) {
       const hashedPassword = await hashPassword(password);
       await sql`UPDATE user_table SET user_password = ${hashedPassword} WHERE email = ${user.email}`;
       return res.status(200).json({
-        message: "password reset successful"
-      })
+        message: "password reset successful",
+      });
     }
     // return res.status(401).json({
     //   message: "user not found"
     // })
-    res.status(401)
+    res.status(401);
     throw new Error("User not found");
   } catch (error) {
     // return res.status(500).json({
     //   error,
     // });
-    next(error)
+    next(error);
   }
-} )
+});
 
 module.exports = {
   register,
   login,
   forgotPassword,
   verifyUser,
-  resetPassword
+  resetPassword,
 };
