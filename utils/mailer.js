@@ -11,7 +11,8 @@ const sendMail = async(email, subject, html)=>{
           }); 
           return info.response
     } catch (error) {
-        console.log(error)
+        // console.log(error)
+        throw new Error(error);
     }
 }
 
